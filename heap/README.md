@@ -1,6 +1,6 @@
 # heap
 Heap (Priority Queue), based on slice.
-1. Define data structure.
+1. Define the heap.
     ```c
     struct my_heap
     {
@@ -8,23 +8,26 @@ Heap (Priority Queue), based on slice.
         SLI_HANDLER;
         HEAP_HANDLER;
     };
-2. Deal with memory: Refer to [chiyoi/slice](https://github.com/chiyoi/slice).
-3. Initialize the structure.
-    ```c
-    HEAP_INIT(h, compare)
-    ```
-    Where `compare` is the compare function for the elements.
-4. Access data.
+2. Manage memory: Refer to [chiyoi/slice](https://github.com/chiyoi/slice).
+3. Use the heap.
+    - Initialization.
+        ```c
+        HEAP_INIT(h, compare)
+        ```
+        Where `compare` is the compare function for the elements.
     - Push.
         ```c
         HEAP_PUSH(h, val)
         ```
-    - Peak and pop.
+    - Pop.
         ```c
-        val = HEAP_PEAK(h)
         val = HEAP_POP(h, out)
         ```
         Where `out` is an temporary variable to store the pop output.
+    - Fix a position to maintain the heap.
+        ```c
+        HEAP_FIX(h, i)
+        ```
 
 ---
 
@@ -38,4 +41,8 @@ Heap (Priority Queue), based on slice.
     But in this case, the receiving is redundant. Just use:
     ```c
     HEAP_POP(h, val)
+    ```
+- The top element will appear on the `0` index, so you can use the interface from [chiyoi/slice](https://github.com/chiyoi/slice) to perform peek. Example:
+    ```c
+    val = A(h, 0)
     ```

@@ -27,19 +27,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HEAP_HANDLER int (*compare)(const void *a, const void *b)
+#define HEAP_HANDLER int (*cmp)(const void *a, const void *b)
 
-#define HEAP_INIT(h, compare) ((h).compare = (compare))
-#define HEAP_PUSH(h, val) (APPEND(h, val), _up(LEN(h) - 1, &A(h, 0), LEN(h), (h).compare, sizeof A(h, 0)))
-#define HEAP_PEAK(h) A(h, 0)
-#define HEAP_POP(h, out) (_swap(&A(h, 0), &A(h, LEN(h) - 1), sizeof A(h, 0)), _down(0, LEN(h) - 1, &A(h, 0), (h).compare, sizeof A(h, 0)), out = A(h, LEN(h) - 1), SLICE(h, 0, LEN(h) - 1), out)
+#define HEAP_INIT(h, compare) ((h).cmp = (compare), _collections_heap_init(LEN(h), &A(h, 0), (h).cmp, sizeof A(h, 0)))
+#define HEAP_PUSH(h, val) (APPEND(h, val), _collections_heap_up(LEN(h) - 1, &A(h, 0), (h).cmp, sizeof A(h, 0)))
+#define HEAP_POP(h, out) (_collections_heap_swap(&A(h, 0), &A(h, LEN(h) - 1), sizeof A(h, 0)), _collections_heap_down(0, LEN(h) - 1, &A(h, 0), (h).cmp, sizeof A(h, 0)), out = A(h, LEN(h) - 1), SLICE(h, 0, LEN(h) - 1), out)
+#define HEAP_FIX(h, i) (!_collections_heap_down(i, LEN(h), &A(h, 0), (h).cmp, sizeof A(h, 0)) ? _collections_heap_up(i, &A(h, 0), (h).cmp, sizeof A(h, 0)) : (void)0)
 
-void _swap(void *a, void *b, size_t size);
-void _up(int j, void *data, size_t data_size, int (*compare)(const void *a, const void *b), size_t item_size);
-char _down(size_t i0, size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
+void _collections_heap_init(size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
+void _collections_heap_swap(void *a, void *b, size_t size);
+void _collections_heap_up(size_t j, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
+char _collections_heap_down(size_t i0, size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
 /* end heap.h */
 
-void _swap(void *a, void *b, size_t size)
+void _collections_heap_swap(void *a, void *b, size_t size)
 {
     void *t;
 
@@ -50,41 +51,49 @@ void _swap(void *a, void *b, size_t size)
     free(t);
 }
 
-void _up(int j, void *data, size_t data_size, int (*compare)(const void *a, const void *b), size_t item_size)
+void _collections_heap_init(size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size)
 {
     size_t i;
 
-    while (0 == 0)
+    for (i = n / 2 - 1; i < n; i--)
+        _collections_heap_down(i, n, data, compare, item_size);
+}
+
+void _collections_heap_up(size_t j, void *data, int (*compare)(const void *a, const void *b), size_t item_size)
+{
+    size_t i;
+
+    while (j != 0)
     {
         i = (j - 1) / 2; /* parent */
         if (i == j || compare(data + j * item_size, data + i * item_size) >= 0)
             break;
 
-        _swap(data + i * item_size, data + j * item_size, item_size);
+        _collections_heap_swap(data + i * item_size, data + j * item_size, item_size);
         j = i;
     }
 }
 
-char _down(size_t i0, size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size)
+char _collections_heap_down(size_t i0, size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size)
 {
-    size_t i, j, j1, j2;
+    size_t i, cl, cr;
 
     i = i0;
     while (0 == 0)
     {
-        j1 = 2 * i + 1;
-        if (j1 >= n || j1 < 0) /* j1 < 0 after int overflow */
+        cl = 2 * i + 1;
+        if (cl >= n)
             break;
 
-        j = j1, j2 = j1 + 1; /* left child */
-        if (j2 < n && compare(data + j2 * item_size, data + j1 * item_size) < 0)
-            j = j2; /* = 2*i + 2  // right child */
+        cr = cl + 1;
+        if (cr < n && compare(data + cr * item_size, data + cl * item_size) < 0)
+            cl = cr;
 
-        if (compare(data + j * item_size, data + i * item_size) >= 0)
+        if (compare(data + cl * item_size, data + i * item_size) >= 0)
             break;
 
-        _swap(data + i * item_size, data + j * item_size, item_size);
-        i = j;
+        _collections_heap_swap(data + i * item_size, data + cl * item_size, item_size);
+        i = cl;
     }
     return i > i0;
 }

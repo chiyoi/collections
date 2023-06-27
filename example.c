@@ -34,7 +34,7 @@ void show_slice(struct slice_int sli)
     if (LEN(sli) == 0)
         printf("[]\n");
     printf("[%d", A(sli, 0));
-    for (i = 0; i < LEN(sli); i++)
+    for (i = 1; i < LEN(sli); i++)
         printf(", %d", A(sli, i));
     printf("]\n");
 }
@@ -60,6 +60,11 @@ void show_heap(struct heap_int h)
     show_slice(sli);
 }
 
+int compare(const void *a, const void *b)
+{
+    return *(int *)a - *(int *)b;
+}
+
 int main()
 {
     int i;
@@ -76,7 +81,7 @@ int main()
         E(m, i) = rand() % 10;
     show_map(m);
 
-    /* FIXME */
+    HEAP_INIT(h, compare);
     for (i = 0; i < 10; i++)
         HEAP_PUSH(h, rand() % 10);
     show_heap(h);
