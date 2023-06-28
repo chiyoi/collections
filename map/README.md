@@ -1,15 +1,15 @@
 # map
 Hash Map, with FNV-1a hash algorithm.
-1. Define the data structure.
+1. Declare a map.
     ```c
     struct my_map
     {
         my_key_type MAP_KEY;
         my_val_type MAP_VAL;
         MAP_HANDLER;
-    };
+    } m;
     ```
-2. Deal with memory.
+2. Allocate some memory.
     - Pre-allocate memory and initialize the structure.
         ```c
         MAP_MAKE(m, hint)
@@ -19,7 +19,7 @@ Hash Map, with FNV-1a hash algorithm.
         ```c
         MAP_FREE(m)
         ```
-3. Access data.
+3. Use the map.
     - Accessing the entry of a key.
         ```c
         E(m, key) = val
@@ -43,7 +43,7 @@ Hash Map, with FNV-1a hash algorithm.
         CAP(sli)
         ```
         The capacity is the bucket count of the map, usually not a usable information.
-4. Iterate.
+4. Use map iterator.
     - Declare iterator.
         ```c
         struct map_iter it

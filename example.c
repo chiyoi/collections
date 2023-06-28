@@ -42,9 +42,8 @@ void show_slice(struct slice_int sli)
 void show_map(struct map_int_int m)
 {
     int k = 0, v = 0;
-    struct map_iter it;
+    struct map_iter it = {};
 
-    MAP_ITER_INIT(m, it);
     if (!MAP_ITER_NEXT(m, it, k, v))
         printf("[]\n");
     printf("[%d: %d", k, v);

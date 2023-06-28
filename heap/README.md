@@ -1,6 +1,6 @@
 # heap
 Heap (Priority Queue), based on slice.
-1. Define the heap.
+1. Declare a heap.
     ```c
     struct my_heap
     {
@@ -8,31 +8,31 @@ Heap (Priority Queue), based on slice.
         SLI_HANDLER;
         HEAP_HANDLER;
     };
-2. Manage memory: Refer to [chiyoi/slice](https://github.com/chiyoi/slice).
+2. Allocate some memory: Refer to [chiyoi/slice](https://github.com/chiyoi/slice).
 3. Use the heap.
-    - Initialization.
+    - Initialize.
         ```c
         HEAP_INIT(h, compare)
         ```
         Where `compare` is the compare function for the elements.
     - Push.
         ```c
-        HEAP_PUSH(h, val)
+        PUSH(h, val)
         ```
     - Pop.
         ```c
-        val = HEAP_POP(h, out)
+        val = POP(h, out)
         ```
         Where `out` is an temporary variable to store the pop output.
     - Fix a position to maintain the heap.
         ```c
-        HEAP_FIX(h, i)
+        FIX(h, i)
         ```
 
 ---
 
 ### Tips
-- The heap operations are based on a dynamic array from [chiyoi/slice](https://github.com/chiyoi/slice), so the operations for that is available.
+- The heap operations are based on a dynamic array from [chiyoi/slice](https://github.com/chiyoi/slice), so the operations for that is available. You may append some items into the heap before `HEAP_INIT`, to avoid multiple `PUSH` call.
 - The `compare` function has the same signature as `qsort` in `stdlib.h`. You can store a pointer to the necessary data in each element, like performing capture in other languages.
 - The `out` for `HEAP_POP` can be the same as the variable receiving the answer. Example:
     ```c

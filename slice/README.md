@@ -1,6 +1,6 @@
 # slice
 Dynamic Array, which can be sliced into parts.
-1. Define the data structure.
+1. Declare a slice.
     ```c
     struct my_slice
     {
@@ -8,7 +8,7 @@ Dynamic Array, which can be sliced into parts.
         SLICE_HANDLER;
     };
     ```
-2. Deal with memory.
+2. Allocate some memory.
     - Pre-allocate memory and initialize the structure.
         ```c
         SLI_MAKE(sli, len, cap)
@@ -17,7 +17,7 @@ Dynamic Array, which can be sliced into parts.
         ```c
         SLI_FREE(sli)
         ```
-3. Access data.
+3. Use the slice.
     - Accessing from array header.
         ```c
         A(sli, i) = val
@@ -31,7 +31,6 @@ Dynamic Array, which can be sliced into parts.
         LEN(sli)
         CAP(sli)
         ```
-4. Modifications.
     - Append.
         ```c
         APPEND(sli, val)

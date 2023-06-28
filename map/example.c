@@ -11,10 +11,9 @@ struct map_int_int
 
 void show(struct map_int_int m)
 {
-    struct map_iter it;
+    struct map_iter it = {};
     int k = 0, v = 0;
 
-    MAP_ITER_INIT(m, it);
     if (!MAP_ITER_NEXT(m, it, k, v))
         return printf("[]\n"), (void)0;
 
