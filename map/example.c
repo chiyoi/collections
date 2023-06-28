@@ -11,9 +11,10 @@ struct map_int_int
 
 void show(struct map_int_int m)
 {
-    struct map_iter it = {};
+    struct map_iter it;
     int k = 0, v = 0;
 
+    MAP_ITER_INIT(m, it);
     if (!MAP_ITER_NEXT(m, it, k, v))
         return printf("[]\n"), (void)0;
 
@@ -29,12 +30,12 @@ int main()
     int k = 1;
     int i;
 
-    printf("%zu %zu %d\n", LEN(m), CAP(m), MAP_HAS(m, k));
+    printf("%zu %zu %d\n", LEN(m), CAP(m), HAS(m, k));
     E(m, k) = 2;
-    printf("%zu %zu %d %d\n", LEN(m), CAP(m), MAP_HAS(m, k), E(m, k));
+    printf("%zu %zu %d %d\n", LEN(m), CAP(m), HAS(m, k), E(m, k));
     E(m, k) = 3;
     printf("%zu %zu %d\n", LEN(m), CAP(m), E(m, k));
-    MAP_DEL(m, k);
+    DEL(m, k);
     printf("%zu %zu %d\n", LEN(m), CAP(m), E(m, k));
 
     for (i = 0; i < 20; i++)

@@ -28,6 +28,7 @@ Hash Map, with FNV-1a hash algorithm.
         ```go
         m[key] = val
         ```
+        `key` should be addressable.
     - Check the existence of a key.
         ```c
         MAP_HAS(m, key)
@@ -43,10 +44,19 @@ Hash Map, with FNV-1a hash algorithm.
         ```
         The capacity is the bucket count of the map, usually not a usable information.
 4. Iterate.
-    ```c
-    struct map_iter it;
-    MAP_ITER_NEXT(m, it, key, val)
-    ```
+    - Declare iterator.
+        ```c
+        struct map_iter it
+        ```
+    - Initiate iterator.
+        ```c
+        MAP_ITER_INIT(m, it)
+        ```
+    - Fetch next item.
+        ```c
+        ok = MAP_ITER_NEXT(m, it, key, val)
+        ```
+        `ok` indicates whether the iterator is exhausted.
 
 ---
 

@@ -11,19 +11,21 @@
 #define MAP_VAL (**vals)
 #define MAP_HANDLER size_t len, cap, *b_len, flag[2];
 
-#define MAP_MAKE(m, hint) ((m).cap = (hint / _LOAD_FACTOR_DEN + 1) * _LOAD_FACTOR_DEN, _collections_map_alloc((void ***)&(m).keys, (void ***)&(m).vals, (m).cap, &(m).b_len))
-#define MAP_FREE(m) (_collections_map_free_all((void **)(m).keys, (m).cap), _collections_map_free_all((void **)(m).vals, (m).cap), free((m).keys), free((m).vals), free((m).b_len), memset(&m, 0, sizeof m), (void)0)
+#define MAP_MAKE(m, hint) ((m).len = 0, (m).cap = (hint / _LOAD_FACTOR_DEN + 1) * _LOAD_FACTOR_DEN, _collections_map_alloc((void ***)&(m).keys, (void ***)&(m).vals, (m).cap, &(m).b_len))
+#define MAP_FREE(m) (_collections_map_free_all((void **)(m).keys, (m).cap), _collections_map_free_all((void **)(m).vals, (m).cap), free((m).keys), free((m).vals), free((m).b_len), RST(m), (void)0)
 
 #define E(m, key) *(_collections_map_check_load((void ***)&(m).keys, (void ***)&(m).vals, (m).len, &(m).cap, &(m).b_len, sizeof **(m).keys, sizeof **(m).vals), _collections_map_check_key((void *)&(key), (void **)(m).keys, (void **)(m).vals, &(m).len, (m).cap, (m).b_len, (m).flag, sizeof **(m).keys, sizeof **(m).vals), &(m).vals[(m).flag[0]][(m).flag[1]])
-#define MAP_HAS(m, key) _collections_map_has((void *)&(key), (void **)(m).keys, (m).cap, (m).b_len, sizeof **(m).keys)
-#define MAP_DEL(m, key) _collections_map_del((void *)&(key), (void **)(m).keys, (void **)(m).vals, &(m).len, (m).cap, (m).b_len, sizeof **(m).keys, sizeof **(m).vals)
+#define HAS(m, key) _collections_map_has((void *)&(key), (void **)(m).keys, (m).cap, (m).b_len, sizeof **(m).keys)
+#define DEL(m, key) _collections_map_del((void *)&(key), (void **)(m).keys, (void **)(m).vals, &(m).len, (m).cap, (m).b_len, sizeof **(m).keys, sizeof **(m).vals)
 
+#define MAP_ITER_INIT(m, it) _collections_map_iter_init(&(it), (m).cap, (m).b_len)
 #define MAP_ITER_NEXT(m, it, key, val) ((it).i < (m).cap ? ((key) = (m).keys[(it).i][(it).j], (val) = (m).vals[(it).i][(it).j], _collections_map_iter_next(&(it), (m).cap, (m).b_len), 1) : 0)
 
 #ifndef PROPERTY_ACCESS
 #define PROPERTY_ACCESS
 #define LEN(c) ((c).len)
 #define CAP(c) ((c).cap)
+#define RST(c) (memset(&(c), 0, sizeof(c)), (void)0)
 #endif
 
 struct map_iter
@@ -37,6 +39,7 @@ void _collections_map_check_load(void ***keys, void ***vals, size_t len, size_t 
 void _collections_map_check_key(void *key, void **keys, void **vals, size_t *len, size_t cap, size_t *b_len, size_t flag[2], size_t key_size, size_t val_size);
 char _collections_map_has(void *key, void **keys, size_t cap, size_t *b_len, size_t key_size);
 void _collections_map_del(void *key, void **keys, void **vals, size_t *len, size_t cap, size_t *b_len, size_t key_size, size_t val_size);
+void _collections_map_iter_init(struct map_iter *it, size_t cap, size_t *b_len);
 void _collections_map_iter_next(struct map_iter *it, size_t cap, size_t *b_len);
 #endif
 /* end map.h */
@@ -44,7 +47,7 @@ void _collections_map_iter_next(struct map_iter *it, size_t cap, size_t *b_len);
 #define _FNV_PRIME 0x00000100000001B3
 #define _FNV_OFFSET_BASIS 0xcbf29ce484222325
 
-unsigned long int _fnv1a(unsigned char *data, size_t data_size)
+static unsigned long int _fnv1a(unsigned char *data, size_t data_size)
 {
     size_t i;
     unsigned long hash;
@@ -55,7 +58,7 @@ unsigned long int _fnv1a(unsigned char *data, size_t data_size)
     return hash;
 }
 
-char _eq(unsigned char *a, unsigned char *b, size_t size)
+static char _eq(unsigned char *a, unsigned char *b, size_t size)
 {
     int i;
 
@@ -80,12 +83,12 @@ void _collections_map_free_all(void **a, size_t size)
         free(a[i]);
 }
 
-size_t _bucket_index(void *key, size_t cap, size_t key_size)
+static size_t _bucket_index(void *key, size_t cap, size_t key_size)
 {
     return _fnv1a(key, key_size) % cap;
 }
 
-size_t _find_key(size_t i, void *key, void **keys, size_t *b_len, size_t key_size)
+static size_t _find_key(size_t i, void *key, void **keys, size_t *b_len, size_t key_size)
 {
     size_t j;
 
@@ -95,14 +98,16 @@ size_t _find_key(size_t i, void *key, void **keys, size_t *b_len, size_t key_siz
     return b_len[i];
 }
 
-void _bucket_append(size_t i, void *key, void **keys, void **vals, size_t *len, size_t cap, size_t *b_len, size_t key_size, size_t val_size)
+static void _bucket_append(size_t i, void *key, void **keys, void **vals, size_t *len, size_t cap, size_t *b_len, size_t key_size, size_t val_size)
 {
     keys[i] = realloc(keys[i], (b_len[i] + 1) * key_size),
-    vals[i] = realloc(vals[i], (b_len[i] + 1) * val_size),
-    memcpy(keys[i] + b_len[i] * key_size, key, key_size),
-    memset(vals[i] + b_len[i] * val_size, 0, val_size),
-    b_len[i]++,
-    (*len)++;
+    vals[i] = realloc(vals[i], (b_len[i] + 1) * val_size);
+
+    memcpy(keys[i] + b_len[i] * key_size, key, key_size);
+    if (val_size > 0)
+        memset(vals[i] + b_len[i] * val_size, 0, val_size);
+
+    b_len[i]++, (*len)++;
 }
 
 void _collections_map_check_key(void *key, void **keys, void **vals, size_t *len, size_t cap, size_t *b_len, size_t flag[2], size_t key_size, size_t val_size)
@@ -113,7 +118,7 @@ void _collections_map_check_key(void *key, void **keys, void **vals, size_t *len
         _bucket_append(flag[0], key, keys, vals, len, cap, b_len, key_size, val_size);
 }
 
-void _move_data(void **keys, void **vals, size_t *b_len, size_t cap, void **old_keys, void **old_vals, size_t *old_b_len, size_t old_cap, size_t key_size, size_t val_size)
+static void _move_data(void **keys, void **vals, size_t *b_len, size_t cap, void **old_keys, void **old_vals, size_t *old_b_len, size_t old_cap, size_t key_size, size_t val_size)
 {
     size_t i, j, flag[2], t;
 
@@ -121,7 +126,8 @@ void _move_data(void **keys, void **vals, size_t *b_len, size_t cap, void **old_
         for (j = 0; j < old_b_len[i]; j++)
         {
             _collections_map_check_key(old_keys[i] + j * key_size, keys, vals, &t, cap, b_len, flag, key_size, val_size);
-            memcpy(vals[flag[0]] + flag[1] * val_size, old_vals[i] + j * val_size, val_size);
+            if (val_size > 0)
+                memcpy(vals[flag[0]] + flag[1] * val_size, old_vals[i] + j * val_size, val_size);
         }
 
     _collections_map_free_all(old_keys, old_cap);
@@ -180,10 +186,18 @@ void _collections_map_del(void *key, void **keys, void **vals, size_t *len, size
     for (k = j + 1; k < b_len[i]; k++)
     {
         memcpy(keys[i] + (k - 1) * key_size, keys[i] + k * key_size, key_size);
-        memcpy(vals[i] + (k - 1) * val_size, vals[i] + k * val_size, val_size);
+        if (val_size > 0)
+            memcpy(vals[i] + (k - 1) * val_size, vals[i] + k * val_size, val_size);
     }
     b_len[i]--;
     (*len)--;
+}
+
+void _collections_map_iter_init(struct map_iter *it, size_t cap, size_t *b_len)
+{
+    it->i = 0, it->j = 0;
+    while (it->i < cap && b_len[it->i] == 0)
+        it->i++;
 }
 
 void _collections_map_iter_next(struct map_iter *it, size_t cap, size_t *b_len)
@@ -191,7 +205,9 @@ void _collections_map_iter_next(struct map_iter *it, size_t cap, size_t *b_len)
     if (it->j + 1 < b_len[it->i])
         it->j++;
     else
-        do
-            it->i++, it->j = 0;
-        while (it->i < cap && b_len[it->i] == 0);
+    {
+        it->i++, it->j = 0;
+        while (it->i < cap && b_len[it->i] == 0)
+            it->i++;
+    }
 }

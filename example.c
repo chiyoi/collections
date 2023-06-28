@@ -3,9 +3,9 @@
 #include <string.h>
 #include <time.h>
 
-#include <slice.h>
-#include <heap.h>
-#include <map.h>
+#include "slice/slice.h"
+#include "heap/heap.h"
+#include "map/map.h"
 
 struct slice_int
 {
@@ -42,8 +42,9 @@ void show_slice(struct slice_int sli)
 void show_map(struct map_int_int m)
 {
     int k = 0, v = 0;
-    struct map_iter it = {};
+    struct map_iter it;
 
+    MAP_ITER_INIT(m, it);
     if (!MAP_ITER_NEXT(m, it, k, v))
         printf("[]\n");
     printf("[%d: %d", k, v);
@@ -83,7 +84,7 @@ int main()
 
     HEAP_INIT(h, compare);
     for (i = 0; i < 10; i++)
-        HEAP_PUSH(h, rand() % 10);
+        PUSH(h, rand() % 10);
     show_heap(h);
 
     SLI_FREE(sli);

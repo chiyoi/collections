@@ -12,7 +12,9 @@ struct heap_int
 
 int compare(const void *a, const void *b)
 {
-    return *(int *)a - *(int *)b;
+    const int *va = a, *vb = b;
+
+    return *va - *vb;
 }
 
 void show(struct heap_int h)
@@ -38,15 +40,15 @@ int main()
     show(h);
     HEAP_INIT(h, compare);
     show(h);
-    HEAP_PUSH(h, 3);
-    HEAP_PUSH(h, 1);
-    HEAP_PUSH(h, 4);
-    HEAP_PUSH(h, 2);
+    PUSH(h, 3);
+    PUSH(h, 1);
+    PUSH(h, 4);
+    PUSH(h, 2);
     show(h);
-    A(h, 0) = 6, HEAP_FIX(h, 0);
+    A(h, 0) = 6, FIX(h, 0);
     show(h);
-    printf("%d\n", HEAP_POP(h, t));
-    printf("%d\n", HEAP_POP(h, t));
+    printf("%d\n", POP(h, t));
+    printf("%d\n", POP(h, t));
     show(h);
     SLI_FREE(h);
 }
