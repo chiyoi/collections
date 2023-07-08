@@ -36,20 +36,18 @@
 #define FIX(h, i) (!_collections_heap_down(i, LEN(h), &A(h, 0), (h).cmp, sizeof A(h, 0)) ? _collections_heap_up(i, &A(h, 0), (h).cmp, sizeof A(h, 0)) : (void)0)
 
 void _collections_heap_init(size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
-void _collections_heap_swap(void *a, void *b, size_t size);
+void _collections_heap_swap(unsigned char *a, unsigned char *b, size_t size);
 void _collections_heap_up(size_t j, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
 char _collections_heap_down(size_t i0, size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size);
 /* end heap.h */
 
-void _collections_heap_swap(void *a, void *b, size_t size)
+void _collections_heap_swap(unsigned char *a, unsigned char *b, size_t size)
 {
-    void *t;
+    size_t i;
+    char t;
 
-    t = malloc(size),
-    memcpy(t, a, size),
-    memcpy(a, b, size),
-    memcpy(b, t, size),
-    free(t);
+    for (i = 0; i < size; i++)
+        t = a[i], a[i] = b[i], b[i] = t;
 }
 
 void _collections_heap_init(size_t n, void *data, int (*compare)(const void *a, const void *b), size_t item_size)
